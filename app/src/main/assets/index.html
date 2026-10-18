@@ -86,7 +86,7 @@ b.addEventListener('click',go);document.addEventListener('keydown',function(e){i
 window.addEventListener('load',function(){setTimeout(enable,Math.max(200,1900-(Date.now()-t0)))});setTimeout(enable,4500)})();</script>
 <div id="top">
   <div class="logo">OFFCAD</div>
-  <button class="sec" id="rot" title="Rotate selected part (R)">&#10227; Rotate</button>
+  <button class="sec" id="zoomout" title="Zoom out">− Zoom</button><button class="sec" id="zoomin" title="Zoom in">+ Zoom</button><button class="sec" id="rot" title="Rotate selected part (R)">&#10227; Rotate</button>
   <button class="sec" id="dup" title="Copy (Ctrl+D)">&#10064; Copy</button>
   <button class="sec" id="del" title="Delete selected (Del)">&#128465; Delete</button>
   <button class="sec" id="undo">&#8630; Undo</button>
@@ -1621,12 +1621,39 @@ window.addEventListener('pointerup',e=>{
   draw();
 });
 cv.addEventListener('contextmenu',e=>e.preventDefault());
+function zoomAt(mx,my,factor){
+  const k0=view.k,k1=Math.max(0.3,Math.min(3,k0*factor));
+  view.ox=mx-(mx-view.ox)*k1/k0;view.oy=my-(my-view.oy)*k1/k0;view.k=k1;draw();
+}
+function zoomCenter(factor){zoomAt(cv.clientWidth/2,cv.clientHeight/2,factor)}
+document.getElementById('zoomin').onclick=()=>zoomCenter(1.2);
+document.getElementById('zoomout').onclick=()=>zoomCenter(1/1.2);
 cv.addEventListener('wheel',e=>{
   e.preventDefault();
-  const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
-  const k0=view.k,k1=Math.max(0.3,Math.min(3,k0*(e.deltaY<0?1.12:1/1.12)));
-  view.ox=mx-(mx-view.ox)*k1/k0;view.oy=my-(my-view.oy)*k1/k0;view.k=k1;draw();
+  const r=cv.getBoundingClientRect();
+  zoomAt(e.clientX-r.left,e.clientY-r.top,e.deltaY<0?1.12:1/1.12);
 },{passive:false});
+// Two-finger pinch zoom for touchscreens (including Android WebView).
+let pinchStart=null;
+cv.addEventListener('touchstart',e=>{
+  if(e.touches.length===2){
+    const a=e.touches[0],b=e.touches[1],r=cv.getBoundingClientRect();
+    pinchStart={dist:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),
+      k:view.k,mx:(a.clientX+b.clientX)/2-r.left,my:(a.clientY+b.clientY)/2-r.top};
+  }
+},{passive:true});
+cv.addEventListener('touchmove',e=>{
+  if(e.touches.length===2&&pinchStart){
+    e.preventDefault();
+    const a=e.touches[0],b=e.touches[1],dist=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+    const factor=dist/Math.max(1,pinchStart.dist);
+    const k0=view.k,k1=Math.max(0.3,Math.min(3,pinchStart.k*factor));
+    view.ox=pinchStart.mx-(pinchStart.mx-view.ox)*k1/k0;
+    view.oy=pinchStart.my-(pinchStart.my-view.oy)*k1/k0;
+    view.k=k1;draw();
+  }
+},{passive:false});
+cv.addEventListener('touchend',e=>{if(e.touches.length<2)pinchStart=null},{passive:true});
 window.addEventListener('keydown',e=>{
   if(e.target&&(e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT'||e.target.tagName==='SELECT'))return;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();return}
