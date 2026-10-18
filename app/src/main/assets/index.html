@@ -1706,12 +1706,25 @@ document.getElementById('del').onclick=deleteSel;
 document.getElementById('clr').onclick=()=>{if(!confirm('Remove everything?'))return;snap();parts=[];wires=[];sel=null;draw()};
 document.getElementById('save').onclick=()=>{
   sketch=document.getElementById('src').value;
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ser()],{type:'application/json'}));a.download='my-circuit.json';a.click();
+  const data=ser();
+  if(window.OffcadBridge&&typeof window.OffcadBridge.saveFile==='function'){
+    window.OffcadBridge.saveFile(data);
+  }else{
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='my-circuit.json';a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  }
 };
-document.getElementById('open').onclick=()=>document.getElementById('file').click();
+document.getElementById('open').onclick=()=>{
+  if(window.OffcadBridge&&typeof window.OffcadBridge.openFile==='function')window.OffcadBridge.openFile();
+  else document.getElementById('file').click();
+};
+window.offcadLoadFileText=function(text){
+  try{snap();load(text);fitView();draw();return true}
+  catch(e){alert('That file could not be opened. Please select a valid OFFCAD .json project.');return false}
+};
 document.getElementById('file').onchange=function(){
   const f=this.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{try{snap();load(rd.result);fitView();draw()}catch(_){alert('That file could not be opened.')}};rd.readAsText(f);this.value='';
+  rd.onload=()=>window.offcadLoadFileText(rd.result);rd.readAsText(f);this.value='';
 };
 (function(){
   const box=document.getElementById('colors');
