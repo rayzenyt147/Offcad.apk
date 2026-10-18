@@ -1539,6 +1539,7 @@ function draw(){
   const ab=document.getElementById('activate'),canActivate=!!(sel&&sel.kind==='part'&&['push','tactile'].includes(sel.o.type));
   ab.disabled=!canActivate;ab.classList.toggle('on',!!(canActivate&&sel.o.pressed));
   ab.textContent=canActivate&&sel.o.pressed?'☝ Release':'☝ Activate';
+  scheduleAutosave();
 }
 let autosaveTimer=null,lastAutosaveData='';
 function scheduleAutosave(){
