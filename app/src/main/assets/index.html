@@ -1450,11 +1450,19 @@ function updateSerial(){
 }
 function setActivatedPart(on){
   if(!sel||sel.kind!=='part'||!['push','tactile'].includes(sel.o.type))return;
+  if(sel.o.pressed===on)return;
   snap();sel.o.pressed=on;draw();
 }
 function toggleActivatedPart(){
-  if(!sel||sel.kind!=='part'||!['push','tactile'].includes(sel.o.type))return;
+  if(!sel||sel.kind!=='part'||sel.o.type!=='tactile')return;
   setActivatedPart(!sel.o.pressed);
+}
+function pressPushbutton(){
+  if(!sel||sel.kind!=='part'||sel.o.type!=='push')return;
+  setActivatedPart(true);
+}
+function releasePushbutton(){
+  if(sel&&sel.kind==='part'&&sel.o.type==='push')setActivatedPart(false);
 }
 function setRunning(on){
   running=on;
@@ -1626,7 +1634,7 @@ cv.addEventListener('pointerdown',e=>{
     if(lastTap.p===p&&now-lastTap.t<420){lastTap={p:null,t:0};editPart(p);draw();return}
     lastTap={p,t:now};
     if(p.type==='pot'){const l=toLocal(p,m);if(Math.hypot(l.x-12,l.y+30)<26){drag={knob:true,p,y:e.clientY,snapped:false};draw();return}}
-    if(p.type==='push'||p.type==='tactile')p.pressed=true;
+    if(p.type==='push')p.pressed=true;
     drag={p,dx:m.x-p.x,dy:m.y-p.y,sx:e.clientX,sy:e.clientY,moved:false};
   }else{
     const w=hitWire(m);
@@ -1650,7 +1658,7 @@ window.addEventListener('pointermove',e=>{
     drag.p.pos=Math.max(0,Math.min(1,drag.p.pos+(drag.y-e.clientY)/120));drag.y=e.clientY;
   }
   else if(drag){
-    if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>4){drag.moved=true;snap();if(drag.p.type==='push'||drag.p.type==='tactile')drag.p.pressed=false}
+    if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>4){drag.moved=true;snap();if(drag.p.type==='push')drag.p.pressed=false}
     if(drag.moved){drag.p.x=Math.round((m.x-drag.dx)/12)*12;drag.p.y=Math.round((m.y-drag.dy)/12)*12}
   }
   draw();
@@ -1665,7 +1673,7 @@ window.addEventListener('pointerup',e=>{
     else wireFrom=null;
   }
   if(drag){
-    if(drag.p&&(drag.p.type==='push'||drag.p.type==='tactile')&&!drag.moved)drag.p.pressed=false;
+    if(drag.p&&drag.p.type==='push'&&!drag.moved)drag.p.pressed=false;
     if(!drag.knob&&!drag.ctl&&!drag.moved&&drag.p.type==='slide')drag.p.s=drag.p.s?0:1;
     drag=null;
   }
@@ -1717,7 +1725,17 @@ window.addEventListener('keydown',e=>{
 
 /* ---------- top bar ---------- */
 document.getElementById('run').onclick=()=>setRunning(!running);
-document.getElementById('activate').onclick=toggleActivatedPart;
+const activateBtn=document.getElementById('activate');
+activateBtn.addEventListener('pointerdown',e=>{
+  if(!sel||sel.kind!=='part')return;
+  if(sel.o.type==='push'){e.preventDefault();pressPushbutton();}
+  else if(sel.o.type==='tactile'){e.preventDefault();toggleActivatedPart();}
+});
+activateBtn.addEventListener('pointerup',releasePushbutton);
+activateBtn.addEventListener('pointercancel',releasePushbutton);
+activateBtn.addEventListener('lostpointercapture',releasePushbutton);
+activateBtn.addEventListener('click',e=>{if(sel&&sel.kind==='part'&&sel.o.type==='push')e.preventDefault()});
+
 document.getElementById('closeparts').onclick=()=>{document.getElementById('side').hidden=true;document.getElementById('showparts').hidden=false;resize()};
 document.getElementById('showparts').onclick=()=>{document.getElementById('side').hidden=false;document.getElementById('showparts').hidden=true;resize()};
 document.getElementById('undo').onclick=undo;
