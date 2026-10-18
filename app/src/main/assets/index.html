@@ -15,6 +15,12 @@ button:disabled{opacity:.4;cursor:default}
 #codebtn{background:#1d5b8f;color:#fff}
 #run{background:#2fb35a;color:#fff;font-size:14px;padding:9px 16px;margin-left:auto}
 #run.on{background:#d9453d}
+#activate{background:#f0b323;color:#17202a;font-weight:800}
+#activate.on{background:#dc4a43;color:#fff}
+#showparts{background:#dcecf8;color:#1d5b8f}
+#side .hd{display:flex;align-items:center;gap:8px}
+#side .hd span{flex:1}
+#closeparts{padding:4px 8px;font-size:17px;line-height:1;background:#e4eaf0;color:#263746}
 .lbl{font-size:12px;color:#667;margin-left:6px}
 #colors{display:flex;gap:5px}
 #colors span{width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 0 0 1px #aab}
@@ -86,9 +92,9 @@ b.addEventListener('click',go);document.addEventListener('keydown',function(e){i
 window.addEventListener('load',function(){setTimeout(enable,Math.max(200,1900-(Date.now()-t0)))});setTimeout(enable,4500)})();</script>
 <div id="top">
   <div class="logo">OFFCAD</div>
-  <button class="sec" id="zoomout" title="Zoom out">− Zoom</button><button class="sec" id="zoomin" title="Zoom in">+ Zoom</button><button class="sec" id="rot" title="Rotate selected part (R)">&#10227; Rotate</button>
+  <button class="sec" id="showparts" title="Show component drawer" hidden>☷ Components</button><button class="sec" id="zoomout" title="Zoom out">− Zoom</button><button class="sec" id="zoomin" title="Zoom in">+ Zoom</button><button class="sec" id="rot" title="Rotate selected part (R)">&#10227; Rotate</button>
   <button class="sec" id="dup" title="Copy (Ctrl+D)">&#10064; Copy</button>
-  <button class="sec" id="del" title="Delete selected (Del)">&#128465; Delete</button>
+  <button class="sec" id="del" title="Delete selected (Del)">&#128465; Delete</button><button id="activate" title="Press/release the selected tactile switch or pushbutton" disabled>☝ Activate</button>
   <button class="sec" id="undo">&#8630; Undo</button>
   <button class="sec" id="save">Save</button>
   <button class="sec" id="open">Open</button>
@@ -111,7 +117,7 @@ window.addEventListener('load',function(){setTimeout(enable,Math.max(200,1900-(D
     <div class="sin"><input id="sin" placeholder="Send text to Arduino"><button id="ssend">Send</button></div>
   </div>
   <div id="side">
-    <div class="hd">Components <small>Basic</small></div>
+    <div class="hd"><span>Components <small>Basic</small></span><button class="sec" id="closeparts" title="Close component drawer" aria-label="Close component drawer">×</button></div>
     <input id="q" placeholder="Search components">
     <div id="grid"></div>
   </div>
@@ -1237,6 +1243,7 @@ function solveNum(nb,dt,commit,ts,opt){
         case 'resistor':stamp(n[0],n[1],1/Math.max(p.val,1e-3));break;
         case 'pot':{const pos=Math.min(0.999,Math.max(0.001,p.pos));stamp(n[0],n[1],1/Math.max(1,p.val*pos));stamp(n[1],n[2],1/Math.max(1,p.val*(1-pos)));break}
         case 'push':stamp(n[0],n[1],100);stamp(n[2],n[3],100);if(p.pressed)stamp(n[0],n[2],100);break;
+        case 'tactile':if(p.pressed)stamp(n[0],n[1],100);break;
         case 'slide':stamp(n[1],p.s?n[2]:n[0],100);break;
         case 'cap':if(!opt.capOpen){const G=Math.max(p.val,1e-12)/Math.max(dt,1e-6);stamp(n[0],n[1],G);inj(n[0],G*p.vc);inj(n[1],-G*p.vc)}break;
         case 'ecap':if(!p.burst&&!opt.capOpen){const G=Math.max(p.val,1e-12)/Math.max(dt,1e-6);stamp(n[0],n[1],G);inj(n[0],G*p.vc);inj(n[1],-G*p.vc)}break;
@@ -1441,6 +1448,14 @@ function setMsg(){
 function updateSerial(){
   if(rt&&rt.serDirty){const el=document.getElementById('ser');el.textContent=rt.ser;el.scrollTop=el.scrollHeight;rt.serDirty=false}
 }
+function setActivatedPart(on){
+  if(!sel||sel.kind!=='part'||!['push','tactile'].includes(sel.o.type))return;
+  snap();sel.o.pressed=on;draw();
+}
+function toggleActivatedPart(){
+  if(!sel||sel.kind!=='part'||!['push','tactile'].includes(sel.o.type))return;
+  setActivatedPart(!sel.o.pressed);
+}
 function setRunning(on){
   running=on;
   const b=document.getElementById('run');
@@ -1513,6 +1528,9 @@ function draw(){
   }
   const has=!!sel;
   ['rot','dup','del'].forEach(id=>{document.getElementById(id).disabled=!(has&&(id==='del'||sel.kind==='part'))});
+  const ab=document.getElementById('activate'),canActivate=!!(sel&&sel.kind==='part'&&['push','tactile'].includes(sel.o.type));
+  ab.disabled=!canActivate;ab.classList.toggle('on',!!(canActivate&&sel.o.pressed));
+  ab.textContent=canActivate&&sel.o.pressed?'☝ Release':'☝ Activate';
 }
 function fitView(){
   if(!parts.length)return;
@@ -1608,7 +1626,7 @@ cv.addEventListener('pointerdown',e=>{
     if(lastTap.p===p&&now-lastTap.t<420){lastTap={p:null,t:0};editPart(p);draw();return}
     lastTap={p,t:now};
     if(p.type==='pot'){const l=toLocal(p,m);if(Math.hypot(l.x-12,l.y+30)<26){drag={knob:true,p,y:e.clientY,snapped:false};draw();return}}
-    if(p.type==='push')p.pressed=true;
+    if(p.type==='push'||p.type==='tactile')p.pressed=true;
     drag={p,dx:m.x-p.x,dy:m.y-p.y,sx:e.clientX,sy:e.clientY,moved:false};
   }else{
     const w=hitWire(m);
@@ -1632,7 +1650,7 @@ window.addEventListener('pointermove',e=>{
     drag.p.pos=Math.max(0,Math.min(1,drag.p.pos+(drag.y-e.clientY)/120));drag.y=e.clientY;
   }
   else if(drag){
-    if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>4){drag.moved=true;snap();if(drag.p.type==='push')drag.p.pressed=false}
+    if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>4){drag.moved=true;snap();if(drag.p.type==='push'||drag.p.type==='tactile')drag.p.pressed=false}
     if(drag.moved){drag.p.x=Math.round((m.x-drag.dx)/12)*12;drag.p.y=Math.round((m.y-drag.dy)/12)*12}
   }
   draw();
@@ -1647,7 +1665,7 @@ window.addEventListener('pointerup',e=>{
     else wireFrom=null;
   }
   if(drag){
-    if(drag.p&&drag.p.type==='push')drag.p.pressed=false;
+    if(drag.p&&(drag.p.type==='push'||drag.p.type==='tactile')&&!drag.moved)drag.p.pressed=false;
     if(!drag.knob&&!drag.ctl&&!drag.moved&&drag.p.type==='slide')drag.p.s=drag.p.s?0:1;
     drag=null;
   }
@@ -1699,6 +1717,9 @@ window.addEventListener('keydown',e=>{
 
 /* ---------- top bar ---------- */
 document.getElementById('run').onclick=()=>setRunning(!running);
+document.getElementById('activate').onclick=toggleActivatedPart;
+document.getElementById('closeparts').onclick=()=>{document.getElementById('side').hidden=true;document.getElementById('showparts').hidden=false;resize()};
+document.getElementById('showparts').onclick=()=>{document.getElementById('side').hidden=false;document.getElementById('showparts').hidden=true;resize()};
 document.getElementById('undo').onclick=undo;
 document.getElementById('rot').onclick=rotateSel;
 document.getElementById('dup').onclick=dupSel;
