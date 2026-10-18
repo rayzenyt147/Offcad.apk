@@ -627,10 +627,43 @@ PD.usb={name:'USB Connector (5V)',pins:[{x:0,y:0,n:'VBUS (+5V)'},{x:0,y:12,n:'D\
  }};
 
 
+/* ---------- added real-world modules and exact component variants ---------- */
+PD.tactile={name:'6x6x5mm Tactile Switch (2-pin)',pins:[{x:-18,y:0,n:'Switch pin 1'},{x:18,y:0,n:'Switch pin 2'}],bbox:[-28,-30,28,8],
+ label:()=>'6x6x5mm tactile switch',
+ draw(c){c.strokeStyle='#888';c.lineWidth=3;line(c,-18,0,-18,-8);line(c,18,0,18,-8);c.fillStyle='#333';rr(c,-23,-29,46,23,3);c.fill();c.strokeStyle='#555';c.stroke();c.fillStyle='#c5c9cc';rr(c,-13,-25,26,15,3);c.fill();c.fillStyle='#8a8f94';circ(c,0,-18,4);c.fill()}};
+PD.breadboard400={name:'Breadboard 400 Tie Points',pins:bbPins,bbox:[-190,-114,202,114],
+ draw(c){PD.breadboard.draw(c);c.fillStyle='#333';c.font='bold 13px Arial';c.textAlign='center';c.fillText('400 TIE POINTS',0,0)}};
+PD.rtc3231={name:'DS3231 RTC + AT24C02 EEPROM',pins:[{x:-36,y:0,n:'32K'},{x:-24,y:0,n:'SQW'},{x:-12,y:0,n:'SCL'},{x:0,y:0,n:'SDA'},{x:12,y:0,n:'VCC'},{x:24,y:0,n:'GND'},{x:36,y:0,n:'BAT'}],bbox:[-55,-85,55,8],
+ label:()=>'DS3231 RTC + AT24C02',
+ draw(c){c.fillStyle='#176b50';rr(c,-53,-78,106,78,4);c.fill();c.strokeStyle='#0a4a35';c.stroke();c.fillStyle='#d4d8da';circ(c,0,-49,23);c.fill();c.strokeStyle='#999';c.stroke();c.fillStyle='#555';circ(c,0,-49,16);c.fill();c.fillStyle='#eee';c.font='bold 8px Arial';c.textAlign='center';c.fillText('DS3231',0,-15);c.fillText('AT24C02',0,-5);c.strokeStyle='#c5a15c';c.lineWidth=3;for(let i=0;i<7;i++)line(c,-36+i*12,0,-36+i*12,8)}};
+PD.jumperMF={name:'Jumper Wire Male-to-Female',pins:[{x:-90,y:0,n:'Male end'},{x:90,y:0,n:'Female end'}],bbox:[-100,-22,100,22],
+ label:()=>'Male-to-female jumper wire',
+ draw(c){c.lineCap='round';c.strokeStyle='#e03a3a';c.lineWidth=4;c.beginPath();c.moveTo(-85,0);c.bezierCurveTo(-45,-20,45,20,82,0);c.stroke();c.fillStyle='#b8b8b8';c.fillRect(-94,-7,15,14);c.fillStyle='#333';rr(c,78,-10,20,20,3);c.fill();c.fillStyle='#d8d8d8';c.fillRect(84,-4,8,8)}};
+PD.jumperMM={name:'Jumper Wire Male-to-Male',pins:[{x:-90,y:0,n:'Male end 1'},{x:90,y:0,n:'Male end 2'}],bbox:[-100,-22,100,22],
+ label:()=>'Male-to-male jumper wire',
+ draw(c){c.lineCap='round';c.strokeStyle='#2f6fe0';c.lineWidth=4;c.beginPath();c.moveTo(-85,0);c.bezierCurveTo(-45,-20,45,20,82,0);c.stroke();c.fillStyle='#b8b8b8';c.fillRect(-94,-7,15,14);c.fillRect(80,-7,15,14);c.fillStyle='#333';c.fillRect(-92,-4,10,8);c.fillRect(82,-4,10,8)}};
+PD.buzzer5v={name:'5V Active Piezo Buzzer 12mm',pins:[{x:-20,y:0,n:'Positive (+5V)'},{x:20,y:0,n:'Negative (GND)'}],bbox:[-30,-70,30,8],
+ label:()=>'5V active piezo buzzer',
+ draw(c){c.strokeStyle='#999';c.lineWidth=2.5;line(c,-20,0,-20,-12);line(c,20,0,20,-12);c.fillStyle='#222';circ(c,0,-40,28);c.fill();c.strokeStyle='#555';c.stroke();c.fillStyle='#333';circ(c,0,-40,21);c.fill();c.fillStyle='#777';circ(c,0,-40,12);c.fill();c.fillStyle='#eee';c.font='bold 8px Arial';c.textAlign='center';c.fillText('5V',0,-37)}};
+PD.unoDIP={name:'Arduino UNO DIP R3 (ATmega328P)',pins:UNO,bbox:[-114,-14,226,230],groups:[UNO_GND],dpin:UNO_D,gnd:UNO_GND,v5:UNO_5V,v33:UNO_33,
+ label:()=>'Arduino UNO DIP R3 / ATmega328P',
+ draw(c,p,r){PD.uno.draw(c,p,r);c.fillStyle='#1b1b1b';rr(c,48,106,112,42,3);c.fill();c.strokeStyle='#aaa';c.stroke();c.fillStyle='#eee';c.font='bold 9px Arial';c.textAlign='center';c.fillText('DIP ATmega328P',104,129)}};
+PD.battery18650={name:'18650 Li-ion Battery 3.7V 1200mAh',pins:[{x:-24,y:0,n:'Positive (+)'},{x:24,y:0,n:'Negative (-)'}],bbox:[-38,-100,38,8],
+ label:()=>'18650 Li-ion 3.7V 1200mAh',
+ draw(c){c.strokeStyle='#c44';c.lineWidth=3;line(c,-24,0,-24,-12);c.strokeStyle='#222';line(c,24,0,24,-12);c.fillStyle='#30343b';rr(c,-34,-96,68,82,15);c.fill();c.strokeStyle='#777';c.stroke();c.fillStyle='#c52c32';rr(c,-29,-85,58,54,5);c.fill();c.fillStyle='#fff';c.font='bold 10px Arial';c.textAlign='center';c.fillText('18650',0,-65);c.font='8px Arial';c.fillText('3.7V',0,-52);c.fillText('1200mAh',0,-41);c.fillStyle='#c5c5c5';c.fillRect(-13,-101,26,7)}};
+PD.holder18650={name:'1-cell 18650 Battery Holder',pins:[{x:-24,y:0,n:'Positive (+)'},{x:24,y:0,n:'Negative (-)'}],bbox:[-48,-100,48,8],
+ label:()=>'1-cell 18650 holder',
+ draw(c){c.strokeStyle='#c44';c.lineWidth=3;line(c,-24,0,-24,-12);c.strokeStyle='#222';line(c,24,0,24,-12);c.fillStyle='#25282d';rr(c,-44,-94,88,80,8);c.fill();c.strokeStyle='#555';c.stroke();c.fillStyle='#111';rr(c,-33,-84,66,58,20);c.fill();c.strokeStyle='#888';c.stroke();c.fillStyle='#ddd';c.font='bold 8px Arial';c.textAlign='center';c.fillText('18650 HOLDER',0,-18)}};
+PD.tp4056={name:'TP4056 Type-C Charger + Protection',pins:[{x:-36,y:0,n:'B+'},{x:-24,y:0,n:'B-'},{x:-12,y:0,n:'OUT+'},{x:0,y:0,n:'OUT-'},{x:12,y:0,n:'IN+'},{x:24,y:0,n:'IN-'},{x:36,y:0,n:'USB 5V'}],bbox:[-55,-78,55,8],
+ label:()=>'TP4056 Type-C charger/protection',
+ draw(c){c.fillStyle='#176b50';rr(c,-53,-70,106,70,4);c.fill();c.strokeStyle='#0b4a35';c.stroke();c.fillStyle='#222';rr(c,-18,-55,36,20,3);c.fill();c.fillStyle='#eee';c.font='bold 8px Arial';c.textAlign='center';c.fillText('TP4056',0,-42);c.fillStyle='#b8b8b8';rr(c,-18,-26,36,13,3);c.fill();c.fillStyle='#ddd';c.fillRect(-14,-23,28,7);c.fillStyle='#e5bd48';for(let i=0;i<7;i++)c.fillRect(-36+i*12,-2,5,10);c.fillStyle='#f44';circ(c,-33,-58,3);c.fill();c.fillStyle='#4f8';circ(c,33,-58,3);c.fill()}};
+
+
 /* ---------- part creation ---------- */
 const DEFAULTS={resistor:{val:220},led:{color:'red',burnt:false},rgb:{mode:'cathode',burnt:false},push:{pressed:false},slide:{s:0},
   pot:{val:10000,pos:0.5},cap:{val:1e-7,vc:0},seg7:{mode:'cathode',burnt:false},bar:{color:'green'}};
 Object.assign(DEFAULTS,{mm:{mode:'V'},scope:{tdiv:0.001,vdiv:1},ecap:{val:1e-4,rating:16,vc:0,burst:false},fgen:{wave:'sine',freq:1000,amp:3,off:0,on:true},psu:{on:false,volt:5,ilim:1},usb:{}});
+Object.assign(DEFAULTS,{tactile:{pressed:false},rtc3231:{},breadboard400:{},jumperMF:{},jumperMM:{},buzzer5v:{},unoDIP:{},battery18650:{},holder18650:{},tp4056:{}});
 function newPart(type,x,y,o){
   return Object.assign({id:nextId++,type,x,y,rot:0},JSON.parse(JSON.stringify(DEFAULTS[type]||{})),o||{});
 }
@@ -2053,7 +2086,17 @@ const ITEMS=[
   {type:'ecap',label:'Electrolytic Capacitor'},
   {type:'fgen',label:'Function Generator'},
   {type:'psu',label:'Power Supply'},
-  {type:'usb',label:'USB Connector'}
+  {type:'usb',label:'USB Connector'},
+  {type:'tactile',label:'6x6x5mm Tactile Switch (2-pin)'},
+  {type:'breadboard400',label:'Breadboard 400 Tie Points'},
+  {type:'rtc3231',label:'DS3231 RTC + AT24C02 EEPROM'},
+  {type:'buzzer5v',label:'5V Active Piezo Buzzer 12mm'},
+  {type:'unoDIP',label:'Arduino UNO DIP R3 / ATmega328P'},
+  {type:'jumperMF',label:'Male-to-Female Jumper Wire'},
+  {type:'jumperMM',label:'Male-to-Male Jumper Wire'},
+  {type:'holder18650',label:'1-cell 18650 Battery Holder'},
+  {type:'battery18650',label:'18650 Li-ion 3.7V 1200mAh'},
+  {type:'tp4056',label:'TP4056 Type-C Charger + Protection'}
 ];
 const grid=document.getElementById('grid');
 ITEMS.forEach((it,i)=>{
