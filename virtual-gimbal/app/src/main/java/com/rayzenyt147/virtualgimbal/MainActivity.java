@@ -57,6 +57,7 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
     }
 
     private void buildUi() {
+        final boolean wide = getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE;
         root = new FrameLayout(this);
         root.setBackgroundColor(Color.BLACK);
         previewView = new PreviewView(this);
@@ -66,19 +67,19 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
 
         LinearLayout top = new LinearLayout(this);
         top.setOrientation(LinearLayout.VERTICAL);
-        top.setPadding(dp(16), dp(14), dp(16), dp(8));
+        top.setPadding(dp(wide ? 8 : 16), dp(wide ? 5 : 14), dp(wide ? 8 : 16), dp(wide ? 3 : 8));
         top.setBackgroundColor(0x99090F15);
         TextView title = new TextView(this);
         title.setText("VIRTUAL GIMBAL");
         title.setTextColor(Color.WHITE);
-        title.setTextSize(17);
+        title.setTextSize(wide ? 13 : 17);
         title.setLetterSpacing(0.14f);
         title.setTypeface(null, 1);
         top.addView(title);
         status = new TextView(this);
         status.setText("LIVE PREVIEW  •  NO RECORDING");
         status.setTextColor(accent);
-        status.setTextSize(11);
+        status.setTextSize(wide ? 9 : 11);
         status.setPadding(0, dp(4), 0, 0);
         top.addView(status);
         FrameLayout.LayoutParams tp = new FrameLayout.LayoutParams(-1, -2, Gravity.TOP);
@@ -86,14 +87,14 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
 
         LinearLayout controls = new LinearLayout(this);
         controls.setOrientation(LinearLayout.VERTICAL);
-        controls.setPadding(dp(12), dp(12), dp(12), dp(16));
+        controls.setPadding(dp(wide ? 7 : 12), dp(wide ? 5 : 12), dp(wide ? 7 : 12), dp(wide ? 5 : 16));
         controls.setBackgroundColor(0xDD0A1119);
         TextView label = new TextView(this);
         label.setText("CONTROL MODE");
         label.setTextColor(0xFFB8C6D2);
         label.setTextSize(10);
         label.setGravity(Gravity.CENTER);
-        controls.addView(label, new LinearLayout.LayoutParams(-1, dp(24)));
+        controls.addView(label, new LinearLayout.LayoutParams(-1, dp(wide ? 16 : 24)));
 
         LinearLayout modes = new LinearLayout(this);
         modes.setGravity(Gravity.CENTER);
@@ -106,7 +107,7 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
                 lastX = lastY = Float.NaN;
                 status.setText("LIVE PREVIEW  •  " + mode + " CONTROL");
             });
-            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, dp(42), 1);
+            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, dp(wide ? 32 : 42), 1);
             bp.setMargins(dp(3), dp(4), dp(3), dp(8));
             modes.addView(b, bp);
         }
@@ -115,7 +116,7 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
         LinearLayout lower = new LinearLayout(this);
         lower.setGravity(Gravity.CENTER_VERTICAL);
         joystick = new Joystick(this);
-        LinearLayout.LayoutParams jp = new LinearLayout.LayoutParams(dp(124), dp(124));
+        LinearLayout.LayoutParams jp = new LinearLayout.LayoutParams(dp(wide ? 88 : 124), dp(wide ? 88 : 124));
         jp.setMargins(dp(4), dp(2), dp(16), dp(2));
         lower.addView(joystick, jp);
         LinearLayout right = new LinearLayout(this);
@@ -124,7 +125,7 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
         TextView help = new TextView(this);
         help.setText("MOVE CROP\nDrag the stick or tilt\nyour phone gently.");
         help.setTextColor(Color.WHITE);
-        help.setTextSize(12);
+        help.setTextSize(wide ? 10 : 12);
         help.setLineSpacing(dp(3), 1f);
         right.addView(help);
         Button orientation = makeButton("ROTATE  PORTRAIT / LANDSCAPE");
@@ -133,7 +134,7 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
             setRequestedOrientation(landscape ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             orientation.setText(landscape ? "SWITCH TO PORTRAIT" : "SWITCH TO LANDSCAPE");
         });
-        LinearLayout.LayoutParams op = new LinearLayout.LayoutParams(-1, dp(42));
+        LinearLayout.LayoutParams op = new LinearLayout.LayoutParams(-1, dp(wide ? 32 : 42));
         op.topMargin = dp(10);
         right.addView(orientation, op);
         lower.addView(right, new LinearLayout.LayoutParams(0, -2, 1));
@@ -144,8 +145,8 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
         updateModeButtons(modes);
         joystick.setOnMove((x, y) -> {
             if (mode.equals("JOYSTICK") || mode.equals("BOTH")) {
-                panX = clamp(panX + x * dp(5), -dp(130), dp(130));
-                panY = clamp(panY + y * dp(5), -dp(130), dp(130));
+                panX = clamp(panX - x * dp(5), -dp(130), dp(130));
+                panY = clamp(panY - y * dp(5), -dp(130), dp(130));
                 applyPan();
             }
         });
