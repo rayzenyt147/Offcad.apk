@@ -144,8 +144,8 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
         updateModeButtons(modes);
         joystick.setOnMove((x, y) -> {
             if (mode.equals("JOYSTICK") || mode.equals("BOTH")) {
-                panX = clamp(panX + x * 0.16f, -dp(130), dp(130));
-                panY = clamp(panY + y * 0.16f, -dp(130), dp(130));
+                panX = clamp(panX + x * dp(5), -dp(130), dp(130));
+                panY = clamp(panY + y * dp(5), -dp(130), dp(130));
                 applyPan();
             }
         });
