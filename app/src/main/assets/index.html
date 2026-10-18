@@ -28,7 +28,7 @@ button:disabled{opacity:.4;cursor:default}
 #main{flex:1;display:flex;min-height:0;position:relative}
 #wrap{flex:1;position:relative;background:#fff;min-width:0}
 canvas#cv{display:block;width:100%;height:100%;touch-action:none}
-#side{width:230px;background:#f7f9fb;border-left:1px solid #cfd8e0;display:flex;flex-direction:column;flex:none}
+#side{width:230px;background:#f7f9fb;border-left:1px solid #cfd8e0;display:flex;flex-direction:column;flex:none}\n#side[hidden]{display:none!important}
 #side .hd{padding:10px 12px 4px;font-weight:700;font-size:14px}
 #side .hd small{font-weight:400;color:#889}
 #q{margin:6px 12px;padding:7px 9px;border:1px solid #c5d0da;border-radius:6px;font-size:13px}
@@ -1542,7 +1542,7 @@ function draw(){
   scheduleAutosave();
 }
 let autosaveTimer=null,lastAutosaveData='';
-function scheduleAutosave(){
+function flushAutosave(){\n  try{sketch=document.getElementById('src').value;const data=ser();if(data!==lastAutosaveData){lastAutosaveData=data;try{localStorage.setItem('offcad.autosave',data)}catch(_){}if(window.OffcadBridge&&typeof window.OffcadBridge.autosaveProject==='function')window.OffcadBridge.autosaveProject(data)}}catch(_){}\n}\nwindow.addEventListener('pagehide',flushAutosave);\ndocument.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushAutosave()});\nfunction scheduleAutosave(){
   if(autosaveTimer)clearTimeout(autosaveTimer);
   autosaveTimer=setTimeout(()=>{
     try{
