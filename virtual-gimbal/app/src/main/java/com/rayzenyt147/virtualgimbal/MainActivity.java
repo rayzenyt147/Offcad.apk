@@ -13,6 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.app.AlertDialog;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -85,62 +86,22 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
         FrameLayout.LayoutParams tp = new FrameLayout.LayoutParams(-1, -2, Gravity.TOP);
         root.addView(top, tp);
 
-        LinearLayout controls = new LinearLayout(this);
-        controls.setOrientation(LinearLayout.VERTICAL);
-        controls.setPadding(dp(wide ? 7 : 12), dp(wide ? 5 : 12), dp(wide ? 7 : 12), dp(wide ? 5 : 16));
-        controls.setBackgroundColor(0xDD0A1119);
-        TextView label = new TextView(this);
-        label.setText("CONTROL MODE");
-        label.setTextColor(0xFFB8C6D2);
-        label.setTextSize(10);
-        label.setGravity(Gravity.CENTER);
-        controls.addView(label, new LinearLayout.LayoutParams(-1, dp(wide ? 16 : 24)));
+        // Keep the live camera unobstructed; settings live in a compact corner menu.
+        Button settings = makeButton("⚙");
+        settings.setTextSize(20);
+        settings.setContentDescription("Settings");
+        FrameLayout.LayoutParams sp = new FrameLayout.LayoutParams(dp(48), dp(44), Gravity.TOP | Gravity.END);
+        sp.setMargins(0, dp(wide ? 4 : 10), dp(wide ? 6 : 10), 0);
+        root.addView(settings, sp);
 
-        LinearLayout modes = new LinearLayout(this);
-        modes.setGravity(Gravity.CENTER);
-        String[] choices = {"JOYSTICK", "GYRO", "BOTH"};
-        for (String choice : choices) {
-            Button b = makeButton(choice);
-            b.setOnClickListener(v -> {
-                mode = choice;
-                updateModeButtons(modes);
-                lastX = lastY = Float.NaN;
-                status.setText("LIVE PREVIEW  •  " + mode + " CONTROL");
-            });
-            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, dp(wide ? 32 : 42), 1);
-            bp.setMargins(dp(3), dp(4), dp(3), dp(8));
-            modes.addView(b, bp);
-        }
-        controls.addView(modes);
-
-        LinearLayout lower = new LinearLayout(this);
-        lower.setGravity(Gravity.CENTER_VERTICAL);
         joystick = new Joystick(this);
-        LinearLayout.LayoutParams jp = new LinearLayout.LayoutParams(dp(wide ? 88 : 124), dp(wide ? 88 : 124));
-        jp.setMargins(dp(4), dp(2), dp(16), dp(2));
-        lower.addView(joystick, jp);
-        LinearLayout right = new LinearLayout(this);
-        right.setOrientation(LinearLayout.VERTICAL);
-        right.setGravity(Gravity.CENTER_VERTICAL);
-        TextView help = new TextView(this);
-        help.setText("MOVE CROP\nDrag the stick or tilt\nyour phone gently.");
-        help.setTextColor(Color.WHITE);
-        help.setTextSize(wide ? 10 : 12);
-        help.setLineSpacing(dp(3), 1f);
-        right.addView(help);
-        Button orientation = makeButton("ROTATE  PORTRAIT / LANDSCAPE");
-        orientation.setOnClickListener(v -> {
-            landscape = !landscape;
-            setRequestedOrientation(landscape ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            orientation.setText(landscape ? "SWITCH TO PORTRAIT" : "SWITCH TO LANDSCAPE");
-        });
-        LinearLayout.LayoutParams op = new LinearLayout.LayoutParams(-1, dp(wide ? 32 : 42));
-        op.topMargin = dp(10);
-        right.addView(orientation, op);
-        lower.addView(right, new LinearLayout.LayoutParams(0, -2, 1));
-        controls.addView(lower);
-        FrameLayout.LayoutParams cp = new FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM);
-        root.addView(controls, cp);
+        int stickSize = wide ? 104 : 124;
+        FrameLayout.LayoutParams jp = new FrameLayout.LayoutParams(dp(stickSize), dp(stickSize),
+                wide ? (Gravity.BOTTOM | Gravity.START) : (Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL));
+        jp.setMargins(dp(wide ? 14 : 0), 0, 0, dp(wide ? 14 : 22));
+        root.addView(joystick, jp);
+
+        settings.setOnClickListener(v -> showSettings(wide));
         setContentView(root);
         updateModeButtons(modes);
         joystick.setOnMove((x, y) -> {
@@ -150,6 +111,52 @@ public class MainActivity extends ComponentActivity implements SensorEventListen
                 applyPan();
             }
         });
+    }
+
+    private void showSettings(boolean wide) {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setPadding(dp(18), dp(8), dp(18), dp(8));
+        TextView modeLabel = new TextView(this);
+        modeLabel.setText("CONTROL MODE");
+        modeLabel.setTextColor(0xFFB8C6D2);
+        modeLabel.setTextSize(12);
+        modeLabel.setPadding(0, dp(6), 0, dp(6));
+        panel.addView(modeLabel);
+        LinearLayout modes = new LinearLayout(this);
+        modes.setGravity(Gravity.CENTER);
+        String[] choices = {"JOYSTICK", "GYRO", "BOTH"};
+        for (String choice : choices) {
+            Button b = makeButton(choice);
+            LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(0, dp(42), 1);
+            bp.setMargins(dp(3), dp(2), dp(3), dp(8));
+            modes.addView(b, bp);
+            b.setOnClickListener(v -> {
+                mode = choice;
+                updateModeButtons(modes);
+                lastX = lastY = Float.NaN;
+                if (status != null) status.setText("CAMERA LIVE  •  " + mode + " CONTROL");
+            });
+        }
+        panel.addView(modes);
+        updateModeButtons(modes);
+        Button orientation = makeButton(landscape ? "SWITCH TO PORTRAIT" : "SWITCH TO LANDSCAPE");
+        panel.addView(orientation, new LinearLayout.LayoutParams(-1, dp(44)));
+        orientation.setOnClickListener(v -> {
+            landscape = !landscape;
+            setRequestedOrientation(landscape ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        });
+        TextView help = new TextView(this);
+        help.setText("Move the joystick to reposition the camera crop. Tilt controls are available in GYRO and BOTH modes.");
+        help.setTextColor(0xFFB8C6D2);
+        help.setTextSize(12);
+        help.setPadding(0, dp(12), 0, dp(4));
+        panel.addView(help);
+        new AlertDialog.Builder(this)
+                .setTitle("VIRTUAL GIMBAL SETTINGS")
+                .setView(panel)
+                .setNegativeButton("CLOSE", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     private void updateModeButtons(LinearLayout row) {
