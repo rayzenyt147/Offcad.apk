@@ -1,0 +1,41 @@
+{
+  "name": "offcad-desktop",
+  "version": "1.0.0",
+  "description": "OFFCAD circuit editor for Windows",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable nsis"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.rayzenyt147.offcad",
+    "productName": "OFFCAD",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.cjs",
+      "index.html"
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ],
+      "artifactName": "OFFCAD-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "OFFCAD-Portable-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
