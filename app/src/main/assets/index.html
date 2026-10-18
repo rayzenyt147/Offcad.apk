@@ -1540,6 +1540,21 @@ function draw(){
   ab.disabled=!canActivate;ab.classList.toggle('on',!!(canActivate&&sel.o.pressed));
   ab.textContent=canActivate&&sel.o.pressed?'☝ Release':'☝ Activate';
 }
+let autosaveTimer=null,lastAutosaveData='';
+function scheduleAutosave(){
+  if(autosaveTimer)clearTimeout(autosaveTimer);
+  autosaveTimer=setTimeout(()=>{
+    try{
+      sketch=document.getElementById('src').value;
+      const data=ser();
+      if(data===lastAutosaveData)return;
+      lastAutosaveData=data;
+      try{localStorage.setItem('offcad.autosave',data)}catch(_){}
+      if(window.OffcadBridge&&typeof window.OffcadBridge.autosaveProject==='function')
+        window.OffcadBridge.autosaveProject(data);
+    }catch(_){}
+  },650);
+}
 function fitView(){
   if(!parts.length)return;
   let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
@@ -2184,15 +2199,15 @@ cv.addEventListener('drop',e=>{
 function resize(){cv.width=cv.clientWidth*DPR;cv.height=cv.clientHeight*DPR;draw()}
 window.addEventListener('resize',resize);
 sketch=EX.blink.code;srcEl.value=sketch;
-(function demo(){
-  const bx=420,by=156;
-  const bb=newPart('breadboard',bx,by),R=newPart('resistor',bx-60,by-60,{val:220}),L=newPart('led',bx-36,by-48,{color:'red'});
-  const B=newPart('battery9',150,60);B.rot=1;
-  parts.push(bb,R,L,B);
-  connect(B,0,bb,bbIdx(2,1),'#e03a3a');
-  connect(B,1,bb,bbIdx(2,0),'#222');
-  connect(bb,bbIdx(8,1),bb,bbIdx(8,4),'#e03a3a');
-  connect(bb,bbIdx(13,5),bb,bbIdx(13,0),'#222');
+(function restoreOrStartEmpty(){
+  let restored=false;
+  try{
+    let saved='';
+    if(window.OffcadBridge&&typeof window.OffcadBridge.loadAutosave==='function') saved=window.OffcadBridge.loadAutosave()||'';
+    if(!saved) saved=localStorage.getItem('offcad.autosave')||'';
+    if(saved){load(saved);lastAutosaveData=ser();restored=true}
+  }catch(e){parts=[];wires=[];nextId=1;sel=null}
+  if(!restored){parts=[];wires=[];nextId=1;sel=null;sketch='';srcEl.value=''}
 })();
 resize();
 </script>
