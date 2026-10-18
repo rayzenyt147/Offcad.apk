@@ -28,7 +28,8 @@ button:disabled{opacity:.4;cursor:default}
 #main{flex:1;display:flex;min-height:0;position:relative}
 #wrap{flex:1;position:relative;background:#fff;min-width:0}
 canvas#cv{display:block;width:100%;height:100%;touch-action:none}
-#side{width:230px;background:#f7f9fb;border-left:1px solid #cfd8e0;display:flex;flex-direction:column;flex:none}\n#side[hidden]{display:none!important}
+#side{width:230px;background:#f7f9fb;border-left:1px solid #cfd8e0;display:flex;flex-direction:column;flex:none}
+#side[hidden]{display:none!important}
 #side .hd{padding:10px 12px 4px;font-weight:700;font-size:14px}
 #side .hd small{font-weight:400;color:#889}
 #q{margin:6px 12px;padding:7px 9px;border:1px solid #c5d0da;border-radius:6px;font-size:13px}
@@ -2168,6 +2169,7 @@ const ITEMS=[
 ];
 const grid=document.getElementById('grid');
 ITEMS.forEach((it,i)=>{
+  try {
   const d=document.createElement('div');d.className='item';d.draggable=true;d.dataset.name=it.label.toLowerCase();
   const c=document.createElement('canvas');c.width=192;c.height=128;c.style.width='96px';c.style.height='64px';
   const cc=c.getContext('2d'),fake=newPart(it.type,0,0,it.o);
@@ -2185,6 +2187,7 @@ ITEMS.forEach((it,i)=>{
     p.x=Math.round((cx-(b[0]+b[2])/2)/12)*12;p.y=Math.round((cy-(b[1]+b[3])/2)/12)*12;draw();
   });
   grid.appendChild(d);
+  } catch(err) { console.error('OFFCAD component render failed:', it && it.type, err); }
 });
 document.getElementById('q').oninput=function(){
   const q=this.value.toLowerCase();[...grid.children].forEach(d=>d.style.display=d.dataset.name.includes(q)?'':'none');
