@@ -17,6 +17,9 @@ import android.widget.Toast;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends Activity {
@@ -69,6 +72,37 @@ public class MainActivity extends Activity {
                 try { startActivityForResult(intent, REQUEST_SAVE); }
                 catch (Exception e) { Toast.makeText(MainActivity.this, "Unable to open Save dialog", Toast.LENGTH_LONG).show(); }
             });
+        }
+        @JavascriptInterface public void autosaveProject(String content) {
+            try {
+                File folder = new File(getFilesDir(), "OFFCAD");
+                if (!folder.exists() && !folder.mkdirs()) return;
+                File target = new File(folder, "autosave.json");
+                File temp = new File(folder, "autosave.tmp");
+                try (FileOutputStream out = new FileOutputStream(temp)) {
+                    out.write(content.getBytes(StandardCharsets.UTF_8));
+                    out.getFD().sync();
+                }
+                if (target.exists() && !target.delete()) return;
+                if (!temp.renameTo(target)) {
+                    try (FileInputStream in = new FileInputStream(temp);
+                         FileOutputStream out = new FileOutputStream(target)) {
+                        byte[] buffer = new byte[8192]; int n;
+                        while ((n = in.read(buffer)) > 0) out.write(buffer, 0, n);
+                    }
+                    temp.delete();
+                }
+            } catch (Exception ignored) { }
+        }
+        @JavascriptInterface public String loadAutosave() {
+            File target = new File(new File(getFilesDir(), "OFFCAD"), "autosave.json");
+            if (!target.isFile()) return "";
+            try (InputStream in = new FileInputStream(target);
+                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[8192]; int n;
+                while ((n = in.read(buffer)) > 0) out.write(buffer, 0, n);
+                return new String(out.toByteArray(), StandardCharsets.UTF_8);
+            } catch (Exception e) { return ""; }
         }
         @JavascriptInterface public void openFile() {
             runOnUiThread(() -> {
